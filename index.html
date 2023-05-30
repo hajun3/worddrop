@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Word Drop Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            position: relative;
+            background-image: url('https://unsplash.com/ko/%EC%82%AC%EC%A7%84/9D1UzBBkZw4');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center center;
+        }
+        .word {
+            position: absolute;
+            font-size: 1.5rem;
+            user-select: none;
+        }
+        #input-field {
+            position: fixed;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 1.5rem;
+        }
+        #counter {
+            position: fixed;
+            bottom: 10px;
+            left: 10px;
+            font-size: 1.5rem;
+        }
+    </style>
+</head>
+<body>
+    <input id="input-field" type="text" onkeydown="checkWord(event)" />
+    <div id="counter">0 / 10</div>
+    <script>
+        const words = ["낙엽","숲","여우","바람","벚꽃","등산","노을","달빛","계절","그림","기억","시간","사랑","꽃밭","나무","별빛","눈물","사슴","강아지","고양이","하늘","구름","무지개","해변","바다","햇살","달","별","마을","성물","모험","섬","수영","캠핑","나비","꿈","우산","비","눈","산책","속초","선물","초록","산","바위","문화","전통","음악","춤","노래","연극","배우","배경","의상","무대","아이디어","수학","과학","영어","중국어","독일어","일본어","스페인어","불어","러시아어","기독교","불교","천주교","이슬람","종교","사회","경제","문학","예술","정치","역사","사회학","심리학","생물학","화학","물리학","지리","철학","의학","식품","요리","생활","여행","게임","운동","헬스","패션","뷰티","광고","마케팅","디자인","컴퓨터","소프트웨어","인터넷","코딩","기술","사무실","직장","회사","인턴","취업","공부","학생","교육","교수","학과","수업","과제","학점","진로","성적","대학교","고등학교","중학교","초등학교","유치원","학교","가족","부모님","자매","형제","친척","결혼식","장미","결혼","연애","이별","남편","아내","사람","친구","동료","회의","미팅","여행사","항공권","호텔","체험","영화","무비","드라마","드라이브","차","바이크","자전거","운전면허","교통","버스","지하철","비행기","선박","전통시장","백화점","마트","판매","할인","제품","농산물","수산물","음료","주류"];
+        const maxWords = 10;
+        let currentWords = [];
+        let failedCount = 0;
+        let successCount = 0;
+        let speedFactor = 1;
+
+        function createWord() {
+            if (currentWords.length < maxWords) {
+                const wordIndex = Math.floor(Math.random() * words.length);
+                const word = words[wordIndex];
+
+            let xPos = Math.random() * (window.innerWidth - 100);
+            let yPos = 0;
+
+        // 겹치는 단어가 있는지 확인하고 새로운 x 위치를 선택하는 로직
+             let overlapping = false;
+             do {
+                overlapping = false;
+                xPos = Math.random() * (window.innerWidth - 100);
+            for (let i = 0; i < currentWords.length; i++) {
+                const wordRect = currentWords[i].element.getBoundingClientRect();
+                if (Math.abs(wordRect.left - xPos) < 100) {
+                    overlapping = true;
+                    break;
+                }
+            }
+        } while (overlapping);
+
+        const wordElement = document.createElement("div");
+        wordElement.className = "word";
+        wordElement.style.left = xPos + "px";
+        wordElement.style.top = yPos + "px";
+        wordElement.innerText = word;
+        document.body.appendChild(wordElement);
+
+                const dropInterval = setInterval(() => {
+                    const yPos = parseFloat(wordElement.style.top);
+                    wordElement.style.top = (yPos + 1.5 * speedFactor) + "px";
+                    if (yPos >= window.innerHeight - 100) {
+                        clearInterval(dropInterval);
+                        removeWord(word, wordElement);
+                        failedCount++;
+                        updateCounter();
+                        if (failedCount >= 10) {
+                            alert("게임 끝! 맞춘 단어 수: " + successCount);
+                            location.reload();
+                        }
+                    }
+                }, 100);
+
+                currentWords.push({ word, element: wordElement, dropInterval });
+            }
+        }
+
+        function removeWord(word, wordElement) {
+            const wordObj = currentWords.find(item => item.word === word && item.element === wordElement);
+            if (wordObj) {
+                clearInterval(wordObj.dropInterval);
+                document.body.removeChild(wordObj.element);
+                currentWords = currentWords.filter(item => item.word !== word || item.element !== wordElement);
+            }
+        }
+
+        function checkWord(event) {
+            const inputField = document.getElementById("input-field");
+            const userInput = inputField.value;
+            if (event.key === "Enter") {
+                const wordObj = currentWords.find(item => item.word === userInput);
+            if (wordObj) {
+                removeWord(userInput, wordObj.element);
+                successCount++;
+            if (successCount % 10 === 0) {
+                speedFactor += 2;
+                }
+            }
+            inputField.value = "";
+        }
+    }
+        function updateCounter() {
+        const counter = document.getElementById("counter");
+        counter.innerText = `${failedCount} / 10`;
+    }
+
+    setInterval(createWord, 700);
+    </script>
+</body>
+</html>
